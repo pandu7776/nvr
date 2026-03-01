@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NVR — Parallel Worlds</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,900;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --gold:#C9A84C;--saffron:#E8861A;--sakura:#E8A0B4;
+  --deep:#070C15;--mid:#0f1a2e;--indigo:#0E1829;
+  --white:#F0EDE6;--muted:rgba(240,237,230,0.5);
+  --red:#E2725B;--blue:#7EB8C9;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--deep);color:var(--white);overflow-x:hidden;}
+
+/* ── MOTION CANVAS (full-page fixed) ── */
+#motionCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;width:100%;z-index:900;padding:1.1rem 6%;display:flex;justify-content:space-between;align-items:center;background:rgba(7,12,21,0.7);backdrop-filter:blur(18px);border-bottom:1px solid rgba(201,168,76,0.1);transition:background 0.4s;}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold);letter-spacing:3px;}
+.nav-links{display:flex;gap:2.5rem;list-style:none;}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:0.78rem;letter-spacing:2px;text-transform:uppercase;transition:color 0.3s;}
+.nav-links a:hover{color:var(--gold);}
+.nav-pill{background:linear-gradient(135deg,var(--gold),var(--saffron));color:var(--deep)!important;padding:0.4rem 1.2rem;border-radius:50px;font-weight:600!important;}
+
+/* ── HERO ── */
+.hero{min-height:100vh;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:100px 6% 160px;}
+.hero::before{content:'';position:absolute;top:0;left:0;width:50%;height:100%;background:linear-gradient(135deg,rgba(139,26,26,0.18) 0%,transparent 100%);pointer-events:none;z-index:1;}
+.hero::after{content:'';position:absolute;top:0;right:0;width:50%;height:100%;background:linear-gradient(225deg,rgba(126,184,201,0.12) 0%,transparent 100%);pointer-events:none;z-index:1;}
+
+/* SVG artwork (hero only) */
+.hero-art{position:absolute;inset:0;pointer-events:none;z-index:2;}
+.mandala-l{position:absolute;left:-160px;top:50%;transform:translateY(-50%);width:min(580px,65vw);height:min(580px,65vw);opacity:0.08;animation:mSpin 100s linear infinite;}
+.mandala-r{position:absolute;right:-160px;top:50%;transform:translateY(-50%);width:min(420px,50vw);height:min(420px,50vw);opacity:0.06;animation:mSpin 70s linear infinite reverse;}
+@keyframes mSpin{to{transform:translateY(-50%) rotate(360deg);}}
+.ct-l{position:absolute;bottom:0;left:0;width:clamp(140px,14vw,240px);opacity:0.5;}
+.ct-r{position:absolute;bottom:0;right:0;width:clamp(140px,14vw,240px);opacity:0.5;transform:scaleX(-1);}
+.torii-h{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:clamp(160px,20vw,340px);opacity:0.07;}
+.cline{position:absolute;left:50%;top:8%;bottom:8%;width:1px;background:linear-gradient(to bottom,transparent,rgba(201,168,76,0.45) 20%,rgba(201,168,76,0.65) 50%,rgba(201,168,76,0.45) 80%,transparent);transform:translateX(-50%);}
+.cgem{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:11px;height:11px;background:var(--gold);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);box-shadow:0 0 18px rgba(201,168,76,0.8);animation:gp 2s ease-in-out infinite;}
+@keyframes gp{0%,100%{box-shadow:0 0 18px rgba(201,168,76,0.7);}50%{box-shadow:0 0 40px rgba(201,168,76,1);}}
+
+.hero-inner{position:relative;z-index:5;width:100%;max-width:1280px;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
+.ey{display:inline-block;font-size:0.68rem;letter-spacing:4px;text-transform:uppercase;padding:0.28rem 1rem;border-radius:20px;margin-bottom:1.4rem;}
+.ey-l{color:var(--red);border:1px solid rgba(226,114,91,0.3);background:rgba(226,114,91,0.06);}
+.ey-r{color:var(--blue);border:1px solid rgba(126,184,201,0.28);background:rgba(126,184,201,0.06);}
+.hero-left h1,.hero-right h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,3.6vw,3.2rem);line-height:1.1;margin-bottom:1.1rem;}
+.hero-left h1 em{color:var(--red);font-style:italic;}
+.hero-right h1 em{color:var(--sakura);font-style:italic;}
+.hero-left p,.hero-right p{color:var(--muted);line-height:1.9;font-size:0.88rem;margin-bottom:1.6rem;}
+.hero-left p strong,.hero-right p strong{color:var(--white);}
+.trow{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.tag{font-size:0.66rem;letter-spacing:1px;text-transform:uppercase;padding:0.26rem 0.75rem;border-radius:20px;}
+.tl{background:rgba(226,114,91,0.1);border:1px solid rgba(226,114,91,0.2);color:var(--red);}
+.tr{background:rgba(126,184,201,0.08);border:1px solid rgba(126,184,201,0.18);color:var(--blue);}
+.hero-right{border-left:1px solid rgba(201,168,76,0.1);padding-left:3rem;}
+
+/* Hero bottom banner */
+.hero-banner{position:absolute;bottom:0;left:0;right:0;z-index:5;background:linear-gradient(90deg,rgba(90,15,15,0.5),rgba(7,12,21,0.88) 50%,rgba(10,28,50,0.5));border-top:1px solid rgba(201,168,76,0.1);padding:1.3rem 6%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;}
+.hb-quote{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(0.8rem,1.2vw,0.97rem);color:var(--gold);}
+.hb-ctas{display:flex;gap:0.7rem;flex-wrap:wrap;}
+.ibtn{padding:0.42rem 1.1rem;border-radius:50px;font-size:0.7rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.3s;text-decoration:none;display:inline-flex;align-items:center;gap:0.45rem;}
+.ib-r{background:rgba(226,114,91,0.1);border:1px solid rgba(226,114,91,0.32);color:var(--red);}
+.ib-r:hover{background:var(--red);color:var(--deep);}
+.ib-b{background:rgba(126,184,201,0.08);border:1px solid rgba(126,184,201,0.25);color:var(--blue);}
+.ib-b:hover{background:var(--blue);color:var(--deep);}
+.ib-g{background:linear-gradient(135deg,var(--gold),var(--saffron));border:none;color:var(--deep);font-weight:600;}
+.ib-g:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(201,168,76,0.38);}
+
+/* ── PHILOSOPHY STRIP ── */
+.phil{padding:75px 6%;background:linear-gradient(180deg,var(--deep),var(--mid));position:relative;}
+.phil::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(201,168,76,0.04) 0%,transparent 70%);pointer-events:none;}
+.phil-in{max-width:820px;margin:0 auto;text-align:center;position:relative;z-index:2;}
+.phil-in blockquote{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,2.5vw,2rem);font-style:italic;line-height:1.55;color:var(--white);margin-bottom:1.8rem;}
+.phil-in blockquote em{color:var(--gold);}
+.phil-in p{color:var(--muted);font-size:0.92rem;line-height:1.9;max-width:640px;margin:0 auto 1.1rem;}
+.phil-in p strong{color:var(--white);}
+
+/* ── WORKS ── */
+.works{padding:100px 6%;position:relative;overflow:hidden;}
+/* Section-level motion overlay — subtle layer over canvas */
+.works::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,12,21,0.7) 0%,rgba(15,26,46,0.6) 50%,rgba(7,12,21,0.7) 100%);pointer-events:none;z-index:1;}
+.works-in{max-width:1280px;margin:0 auto;position:relative;z-index:2;}
+.sec-hdr{text-align:center;margin-bottom:4.5rem;}
+.stag{display:block;color:var(--gold);font-size:0.68rem;letter-spacing:5px;text-transform:uppercase;margin-bottom:0.8rem;}
+.sec-hdr h2{font-family:'Playfair Display',serif;font-size:clamp(2rem,3.8vw,3rem);color:var(--white);margin-bottom:0.6rem;}
+.sec-hdr p{color:var(--muted);font-size:0.88rem;font-style:italic;}
+.divart{display:flex;align-items:center;justify-content:center;gap:1rem;padding:0.4rem 0 1.2rem;}
+.divline{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,0.3),transparent);}
+
+/* Book widgets */
+.books-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;margin-bottom:3rem;}
+.book-widget{display:flex;gap:0;border-radius:16px;overflow:hidden;cursor:pointer;transition:all 0.45s;background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);position:relative;}
+.book-widget:hover{transform:translateY(-8px);border-color:rgba(201,168,76,0.25);box-shadow:0 25px 60px rgba(0,0,0,0.5);}
+.bspine{width:13px;flex-shrink:0;position:relative;transition:width 0.3s;}
+.book-widget:hover .bspine{width:17px;}
+.bspine::after{content:attr(data-n);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-90deg);color:rgba(255,255,255,0.35);font-size:0.58rem;letter-spacing:1px;white-space:nowrap;}
+.bcover{width:85px;flex-shrink:0;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:2.6rem;border-right:1px solid rgba(255,255,255,0.05);transition:transform 0.4s;}
+.book-widget:hover .bcover{transform:scale(1.05);}
+.bcover-ov{position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,0.05),transparent);}
+.bbody{padding:1.1rem 1.3rem 1.1rem;flex:1;padding-right:2.8rem;}
+.bbadge{font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;padding:0.18rem 0.65rem;border-radius:20px;display:inline-block;margin-bottom:0.55rem;}
+.bb-s{background:rgba(232,160,180,0.1);border:1px solid rgba(232,160,180,0.2);color:var(--sakura);}
+.bb-g{background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);color:var(--gold);}
+.bbody h4{font-family:'Playfair Display',serif;font-size:0.98rem;color:var(--white);margin-bottom:0.35rem;font-style:italic;}
+.bseries{font-size:0.7rem;color:var(--muted);margin-bottom:0.55rem;}
+.bthemes{display:flex;gap:0.35rem;flex-wrap:wrap;}
+.bth{font-size:0.6rem;padding:0.16rem 0.5rem;border-radius:8px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.38);}
+.bcta{position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.18);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:0.75rem;transition:all 0.3s;}
+.book-widget:hover .bcta{background:var(--gold);color:var(--deep);transform:translateY(-50%) scale(1.12);}
+
+/* VAS Labs tech cards row */
+.tech-row{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:3rem;}
+.tech-card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:1.6rem;transition:all 0.4s;text-decoration:none;display:block;color:inherit;}
+.tech-card:hover{border-color:rgba(126,184,201,0.25);background:rgba(126,184,201,0.03);transform:translateY(-6px);box-shadow:0 20px 50px rgba(0,0,0,0.4);}
+.tc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.9rem;}
+.tc-ico{font-size:1.7rem;}
+.tc-badge{font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;padding:0.18rem 0.65rem;border-radius:20px;background:rgba(126,184,201,0.1);border:1px solid rgba(126,184,201,0.18);color:var(--blue);}
+.tc-arr{color:rgba(255,255,255,0.12);transition:all 0.3s;font-size:0.85rem;}
+.tech-card:hover .tc-arr{color:var(--gold);transform:translate(3px,-3px);}
+.tech-card h4{font-family:'Playfair Display',serif;font-size:1rem;color:var(--white);margin-bottom:0.38rem;}
+.tc-focus{font-size:0.68rem;letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin-bottom:0.55rem;}
+.tech-card p{color:var(--muted);font-size:0.8rem;line-height:1.7;}
+.tc-tags{display:flex;gap:0.38rem;flex-wrap:wrap;margin-top:0.75rem;}
+.tc-t{font-size:0.62rem;padding:0.18rem 0.58rem;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);color:rgba(255,255,255,0.38);transition:all 0.3s;}
+.tech-card:hover .tc-t{border-color:rgba(126,184,201,0.2);color:var(--blue);}
+
+/* VAS badge standalone */
+.vas-row{display:flex;justify-content:flex-start;margin-bottom:0.5rem;}
+.vas-badge{display:inline-flex;align-items:center;gap:0.85rem;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.16);padding:0.8rem 1.3rem;border-radius:13px;text-decoration:none;transition:all 0.3s;}
+.vas-badge:hover{background:rgba(201,168,76,0.11);border-color:rgba(201,168,76,0.32);transform:translateY(-3px);}
+.vl{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--saffron));display:flex;align-items:center;justify-content:center;font-size:0.95rem;font-weight:700;color:var(--deep);font-family:'Playfair Display',serif;}
+.vi h4{color:var(--gold);font-size:0.86rem;}
+.vi p{color:var(--muted);font-size:0.7rem;margin-top:0.1rem;}
+
+/* Bottom tagline — shown ONCE */
+.bottom-tagline{
+  margin-top:5rem;padding:2rem 3rem;
+  background:linear-gradient(90deg,rgba(90,15,15,0.25),rgba(7,12,21,0.92) 50%,rgba(10,28,50,0.25));
+  border-top:1px solid rgba(201,168,76,0.08);border-bottom:1px solid rgba(201,168,76,0.08);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;
+  border-radius:16px;
+}
+.bt-q{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(0.9rem,1.5vw,1.1rem);color:var(--gold);}
+.bt-btns{display:flex;gap:0.75rem;flex-wrap:wrap;}
+
+/* ── CONTACT ── */
+.contact{padding:100px 6%;position:relative;overflow:hidden;}
+.contact::before{content:'';position:absolute;inset:0;background:rgba(7,12,21,0.75);pointer-events:none;z-index:1;}
+.contact::after{content:'';position:absolute;inset:0;opacity:0.03;background-image:url("data:image/svg+xml,%3Csvg width='90' height='90' viewBox='0 0 90 90' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='45' cy='45' r='40' fill='none' stroke='%23C9A84C' stroke-width='0.5'/%3E%3Ccircle cx='45' cy='45' r='29' fill='none' stroke='%23E8861A' stroke-width='0.4'/%3E%3Ccircle cx='45' cy='45' r='18' fill='none' stroke='%23C9A84C' stroke-width='0.35'/%3E%3Cellipse cx='45' cy='6' rx='4' ry='10' fill='%23C9A84C' opacity='0.35'/%3E%3Cellipse cx='45' cy='84' rx='4' ry='10' fill='%23C9A84C' opacity='0.35'/%3E%3Cellipse cx='6' cy='45' rx='10' ry='4' fill='%23C9A84C' opacity='0.35'/%3E%3Cellipse cx='84' cy='45' rx='10' ry='4' fill='%23C9A84C' opacity='0.35'/%3E%3C/svg%3E");background-size:90px 90px;pointer-events:none;z-index:1;}
+.contact-in{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:6rem;position:relative;z-index:2;}
+.c-stag{display:block;color:var(--gold);font-size:0.68rem;letter-spacing:5px;text-transform:uppercase;margin-bottom:1.4rem;}
+.contact-left h2{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3vw,2.7rem);color:var(--white);margin-bottom:1.3rem;line-height:1.2;}
+.contact-left h2 em{color:var(--gold);font-style:italic;}
+.contact-left>p{color:var(--muted);line-height:1.9;font-size:0.88rem;margin-bottom:2rem;}
+.c-items{display:flex;flex-direction:column;gap:0.85rem;margin-bottom:2rem;}
+.c-item{display:flex;align-items:center;gap:0.85rem;color:rgba(240,237,230,0.7);font-size:0.84rem;}
+.c-ico{width:34px;height:34px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(201,168,76,0.07);border:1px solid rgba(201,168,76,0.13);}
+.socials{display:flex;gap:0.75rem;}
+.soc{width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;text-decoration:none;transition:all 0.3s;color:var(--white);}
+.soc:hover{background:linear-gradient(135deg,var(--gold),var(--saffron));border-color:transparent;transform:translateY(-4px);}
+.soc svg{width:19px;height:19px;fill:currentColor;}
+.cform{background:rgba(255,255,255,0.025);border:1px solid rgba(201,168,76,0.1);border-radius:20px;padding:2.2rem;backdrop-filter:blur(10px);}
+.fg{margin-bottom:1.25rem;}
+.fg label{display:block;color:var(--gold);font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:0.45rem;}
+.fg input,.fg textarea,.fg select{width:100%;padding:0.78rem 0.95rem;border:1px solid rgba(255,255,255,0.08);border-radius:10px;background:rgba(255,255,255,0.04);color:var(--white);font-family:inherit;font-size:0.84rem;transition:all 0.3s;}
+.fg input::placeholder,.fg textarea::placeholder{color:rgba(255,255,255,0.2);}
+.fg input:focus,.fg textarea:focus{outline:none;border-color:rgba(201,168,76,0.36);background:rgba(201,168,76,0.04);}
+.fg textarea{height:105px;resize:vertical;}
+.fg select option{background:#0E1829;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;}
+.sbtn{width:100%;padding:0.9rem;background:linear-gradient(135deg,var(--gold),var(--saffron));color:var(--deep);border:none;border-radius:50px;font-size:0.84rem;font-weight:700;cursor:pointer;transition:all 0.4s;letter-spacing:2px;text-transform:uppercase;box-shadow:0 8px 22px rgba(201,168,76,0.16);margin-top:0.35rem;}
+.sbtn:hover{transform:translateY(-4px);box-shadow:0 16px 42px rgba(201,168,76,0.35);}
+
+/* ── FOOTER ── */
+footer{background:#030609;padding:2rem 6%;border-top:1px solid rgba(201,168,76,0.07);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;position:relative;z-index:2;}
+.ft-logo{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--gold);letter-spacing:3px;}
+.ft-sym{font-size:0.95rem;letter-spacing:0.5rem;opacity:0.35;}
+footer p{color:rgba(255,255,255,0.18);font-size:0.7rem;}
+
+/* ── BOOK MODAL ── */
+.modal-ov{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.88);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:2rem;opacity:0;pointer-events:none;transition:opacity 0.4s;}
+.modal-ov.open{opacity:1;pointer-events:all;}
+.modal-box{width:100%;max-width:720px;background:linear-gradient(160deg,#0d1525,#14202e);border:1px solid rgba(201,168,76,0.18);border-radius:20px;overflow:hidden;position:relative;transform:translateY(28px) scale(0.97);transition:transform 0.4s;max-height:90vh;display:flex;flex-direction:column;}
+.modal-ov.open .modal-box{transform:translateY(0) scale(1);}
+.modal-hdr{padding:1.4rem 1.8rem;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:1.1rem;background:rgba(255,255,255,0.02);flex-shrink:0;}
+.m-ico{font-size:2rem;}
+.modal-hdr h3{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--white);font-style:italic;}
+.modal-hdr p{font-size:0.72rem;color:var(--sakura);margin-top:0.15rem;letter-spacing:1px;}
+.m-close{margin-left:auto;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.95rem;transition:all 0.3s;flex-shrink:0;}
+.m-close:hover{background:rgba(226,114,91,0.28);border-color:var(--red);color:var(--red);}
+.modal-body{padding:1.8rem;overflow-y:auto;flex:1;}
+.pdf-area{width:100%;height:400px;border-radius:12px;background:rgba(255,255,255,0.03);border:2px dashed rgba(201,168,76,0.18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.9rem;margin-bottom:1.3rem;}
+.pdf-area .pi{font-size:3.2rem;opacity:0.45;}
+.pdf-area p{color:var(--muted);font-size:0.82rem;text-align:center;max-width:280px;line-height:1.7;}
+.pdf-area span{color:var(--gold);font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;border:1px dashed rgba(201,168,76,0.28);padding:0.35rem 1.1rem;border-radius:50px;}
+.m-chips{display:flex;gap:0.75rem;flex-wrap:wrap;}
+.mchip{font-size:0.68rem;padding:0.25rem 0.75rem;border-radius:20px;background:rgba(232,160,180,0.1);border:1px solid rgba(232,160,180,0.18);color:var(--sakura);}
+
+/* ── ANIMATIONS ── */
+.rv{opacity:0;transform:translateY(38px);transition:all 0.85s cubic-bezier(0.25,0.46,0.45,0.94);}
+.rv.show{opacity:1;transform:translateY(0);}
+.rl{opacity:0;transform:translateX(-38px);transition:all 0.85s ease;}
+.rl.show{opacity:1;transform:translateX(0);}
+.rr{opacity:0;transform:translateX(38px);transition:all 0.85s ease;}
+.rr.show{opacity:1;transform:translateX(0);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero-inner,.contact-in{grid-template-columns:1fr;}
+  .hero-right{border-left:none;border-top:1px solid rgba(201,168,76,0.1);padding-left:0;padding-top:2rem;}
+  .cline,.cgem{display:none;}
+  .books-grid,.tech-row{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  nav .nav-links{display:none;}
+  .hero-banner{flex-direction:column;text-align:center;}
+  .bottom-tagline{flex-direction:column;text-align:center;}
+  .frow{grid-template-columns:1fr;}
+  footer{flex-direction:column;text-align:center;}
+}
+
+/* ── ABOUT ── */
+.about{padding:110px 6%;position:relative;overflow:hidden;}
+.about::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,26,46,0.72) 0%,rgba(7,12,21,0.68) 100%);pointer-events:none;z-index:1;}
+.about-in{max-width:1180px;margin:0 auto;position:relative;z-index:2;display:grid;grid-template-columns:1fr 1.55fr;gap:6rem;align-items:center;}
+.about-left{display:flex;flex-direction:column;gap:1.8rem;}
+.about-avatar{
+  width:clamp(200px,22vw,280px);height:clamp(200px,22vw,280px);
+  border-radius:50%;position:relative;flex-shrink:0;
+  background:linear-gradient(135deg,#1a2a4a,#2a0a1a);
+  border:2px solid rgba(201,168,76,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(5rem,10vw,8rem);
+  box-shadow:0 0 60px rgba(201,168,76,0.12),0 0 120px rgba(232,134,26,0.06);
+  overflow:hidden;
+}
+.about-avatar::before{
+  content:'';position:absolute;inset:-2px;border-radius:50%;
+  background:conic-gradient(var(--gold),var(--saffron),var(--sakura),var(--blue),var(--gold));
+  z-index:-1;animation:aring 6s linear infinite;
+}
+@keyframes aring{to{transform:rotate(360deg);}}
+.about-avatar::after{
+  content:'';position:absolute;inset:3px;border-radius:50%;
+  background:linear-gradient(135deg,#0d1525,#1a2a4a);z-index:0;
+}
+.about-avatar span{position:relative;z-index:1;}
+.about-badge-row{display:flex;flex-wrap:wrap;gap:0.6rem;}
+.ab{display:inline-flex;align-items:center;gap:0.4rem;font-size:0.7rem;letter-spacing:1.5px;text-transform:uppercase;padding:0.3rem 0.85rem;border-radius:20px;}
+.ab-gold{background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.22);color:var(--gold);}
+.ab-red{background:rgba(226,114,91,0.1);border:1px solid rgba(226,114,91,0.22);color:var(--red);}
+.ab-blue{background:rgba(126,184,201,0.08);border:1px solid rgba(126,184,201,0.2);color:var(--blue);}
+.ab-sakura{background:rgba(232,160,180,0.08);border:1px solid rgba(232,160,180,0.2);color:var(--sakura);}
+.about-right{}
+.a-stag{display:block;color:var(--gold);font-size:0.68rem;letter-spacing:5px;text-transform:uppercase;margin-bottom:1rem;}
+.about-right h2{font-family:'Playfair Display',serif;font-size:clamp(2rem,3.5vw,3rem);color:var(--white);margin-bottom:1.5rem;line-height:1.15;}
+.about-right h2 em{color:var(--gold);font-style:italic;}
+.about-right h2 span{color:var(--sakura);}
+.about-bio{margin-bottom:2rem;}
+.about-bio p{color:var(--muted);line-height:1.95;font-size:0.9rem;margin-bottom:0.95rem;}
+.about-bio p strong{color:var(--white);}
+.about-bio p em{color:var(--sakura);font-style:italic;}
+.about-duality{
+  display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:2rem;
+}
+.ad-card{
+  background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;padding:1.3rem;transition:all 0.35s;
+}
+.ad-card:hover{transform:translateY(-4px);}
+.ad-card-l{border-left:3px solid var(--red);}
+.ad-card-l:hover{border-color:var(--saffron);background:rgba(226,114,91,0.04);}
+.ad-card-r{border-left:3px solid var(--blue);}
+.ad-card-r:hover{border-color:var(--sakura);background:rgba(126,184,201,0.04);}
+.ad-title{font-size:0.68rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:0.55rem;}
+.ad-card-l .ad-title{color:var(--red);}
+.ad-card-r .ad-title{color:var(--blue);}
+.ad-card h4{font-family:'Playfair Display',serif;font-size:0.95rem;color:var(--white);margin-bottom:0.4rem;}
+.ad-card p{color:var(--muted);font-size:0.78rem;line-height:1.65;}
+@media(max-width:900px){
+  .about-in{grid-template-columns:1fr;}
+  .about-left{align-items:center;text-align:center;}
+  .about-duality{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- FULL-PAGE MOTION CANVAS -->
+<canvas id="motionCanvas"></canvas>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-logo">NVR</div>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#works">Works</a></li>
+    <li><a href="#contact" class="nav-pill">Join Me</a></li>
+  </ul>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero" id="home">
+  <div class="hero-art">
+    <!-- Left Mandala -->
+    <svg class="mandala-l" viewBox="0 0 580 580" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="290" cy="290" r="278" stroke="#C9A84C" stroke-width="1.1"/><circle cx="290" cy="290" r="245" stroke="#E8861A" stroke-width="0.8"/><circle cx="290" cy="290" r="212" stroke="#C9A84C" stroke-width="0.65"/><circle cx="290" cy="290" r="179" stroke="#E2725B" stroke-width="0.8"/><circle cx="290" cy="290" r="146" stroke="#C9A84C" stroke-width="0.55"/><circle cx="290" cy="290" r="113" stroke="#E8861A" stroke-width="0.45"/><circle cx="290" cy="290" r="80" stroke="#C9A84C" stroke-width="0.55"/><circle cx="290" cy="290" r="47" stroke="#E2725B" stroke-width="0.7"/><circle cx="290" cy="290" r="18" fill="#C9A84C" opacity="0.16"/>
+      <ellipse cx="290" cy="13" rx="11" ry="32" fill="#C9A84C" opacity="0.48"/><ellipse cx="290" cy="567" rx="11" ry="32" fill="#C9A84C" opacity="0.48"/><ellipse cx="13" cy="290" rx="32" ry="11" fill="#C9A84C" opacity="0.48"/><ellipse cx="567" cy="290" rx="32" ry="11" fill="#C9A84C" opacity="0.48"/>
+      <ellipse cx="82" cy="82" rx="11" ry="32" fill="#E8861A" opacity="0.36" transform="rotate(-45 82 82)"/><ellipse cx="498" cy="82" rx="11" ry="32" fill="#E8861A" opacity="0.36" transform="rotate(45 498 82)"/><ellipse cx="82" cy="498" rx="11" ry="32" fill="#E8861A" opacity="0.36" transform="rotate(45 82 498)"/><ellipse cx="498" cy="498" rx="11" ry="32" fill="#E8861A" opacity="0.36" transform="rotate(-45 498 498)"/>
+      <ellipse cx="290" cy="145" rx="7" ry="22" fill="#E2725B" opacity="0.28"/><ellipse cx="290" cy="435" rx="7" ry="22" fill="#E2725B" opacity="0.28"/><ellipse cx="145" cy="290" rx="22" ry="7" fill="#E2725B" opacity="0.28"/><ellipse cx="435" cy="290" rx="22" ry="7" fill="#E2725B" opacity="0.28"/>
+    </svg>
+    <!-- Right Mandala (Japanese floral) -->
+    <svg class="mandala-r" viewBox="0 0 420 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="210" cy="210" r="200" stroke="#E8A0B4" stroke-width="0.9"/><circle cx="210" cy="210" r="168" stroke="#7EB8C9" stroke-width="0.7"/><circle cx="210" cy="210" r="136" stroke="#E8A0B4" stroke-width="0.6"/><circle cx="210" cy="210" r="104" stroke="#7EB8C9" stroke-width="0.55"/><circle cx="210" cy="210" r="72" stroke="#E8A0B4" stroke-width="0.5"/><circle cx="210" cy="210" r="40" stroke="#7EB8C9" stroke-width="0.6"/><circle cx="210" cy="210" r="14" fill="#E8A0B4" opacity="0.2"/>
+      <ellipse cx="210" cy="12" rx="9" ry="24" fill="#E8A0B4" opacity="0.5"/><ellipse cx="210" cy="408" rx="9" ry="24" fill="#E8A0B4" opacity="0.5"/><ellipse cx="12" cy="210" rx="24" ry="9" fill="#E8A0B4" opacity="0.5"/><ellipse cx="408" cy="210" rx="24" ry="9" fill="#E8A0B4" opacity="0.5"/>
+      <ellipse cx="62" cy="62" rx="9" ry="24" fill="#7EB8C9" opacity="0.35" transform="rotate(-45 62 62)"/><ellipse cx="358" cy="62" rx="9" ry="24" fill="#7EB8C9" opacity="0.35" transform="rotate(45 358 62)"/><ellipse cx="62" cy="358" rx="9" ry="24" fill="#7EB8C9" opacity="0.35" transform="rotate(45 62 358)"/><ellipse cx="358" cy="358" rx="9" ry="24" fill="#7EB8C9" opacity="0.35" transform="rotate(-45 358 358)"/>
+    </svg>
+    <!-- Cherry Tree Left -->
+    <svg class="ct-l" viewBox="0 0 220 500" xmlns="http://www.w3.org/2000/svg">
+      <line x1="110" y1="500" x2="110" y2="240" stroke="#5a2d0c" stroke-width="13" stroke-linecap="round"/>
+      <line x1="110" y1="370" x2="35" y2="255" stroke="#6b3820" stroke-width="8" stroke-linecap="round"/>
+      <line x1="110" y1="330" x2="185" y2="230" stroke="#6b3820" stroke-width="8" stroke-linecap="round"/>
+      <line x1="35" y1="255" x2="15" y2="175" stroke="#7a4030" stroke-width="5" stroke-linecap="round"/>
+      <line x1="185" y1="230" x2="205" y2="150" stroke="#7a4030" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="110" cy="175" r="70" fill="#E8A0B4" opacity="0.85"/><circle cx="48" cy="163" r="53" fill="#d990a0" opacity="0.8"/><circle cx="176" cy="157" r="56" fill="#E8A0B4" opacity="0.85"/><circle cx="82" cy="122" r="49" fill="#f0b4c4" opacity="0.88"/><circle cx="147" cy="116" r="51" fill="#d990a0" opacity="0.82"/><circle cx="110" cy="100" r="46" fill="#E8A0B4" opacity="0.9"/><circle cx="18" cy="173" r="38" fill="#f0b4c4" opacity="0.7"/><circle cx="200" cy="149" r="34" fill="#E8A0B4" opacity="0.7"/>
+    </svg>
+    <!-- Cherry Tree Right -->
+    <svg class="ct-r" viewBox="0 0 220 500" xmlns="http://www.w3.org/2000/svg">
+      <line x1="110" y1="500" x2="110" y2="240" stroke="#5a2d0c" stroke-width="13" stroke-linecap="round"/>
+      <line x1="110" y1="370" x2="35" y2="255" stroke="#6b3820" stroke-width="8" stroke-linecap="round"/>
+      <line x1="110" y1="330" x2="185" y2="230" stroke="#6b3820" stroke-width="8" stroke-linecap="round"/>
+      <line x1="35" y1="255" x2="15" y2="175" stroke="#7a4030" stroke-width="5" stroke-linecap="round"/>
+      <line x1="185" y1="230" x2="205" y2="150" stroke="#7a4030" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="110" cy="175" r="70" fill="#E8A0B4" opacity="0.85"/><circle cx="48" cy="163" r="53" fill="#d990a0" opacity="0.8"/><circle cx="176" cy="157" r="56" fill="#E8A0B4" opacity="0.85"/><circle cx="82" cy="122" r="49" fill="#f0b4c4" opacity="0.88"/><circle cx="147" cy="116" r="51" fill="#d990a0" opacity="0.82"/><circle cx="110" cy="100" r="46" fill="#E8A0B4" opacity="0.9"/><circle cx="18" cy="173" r="38" fill="#f0b4c4" opacity="0.7"/><circle cx="200" cy="149" r="34" fill="#E8A0B4" opacity="0.7"/>
+    </svg>
+    <!-- Torii -->
+    <svg class="torii-h" viewBox="0 0 380 280" xmlns="http://www.w3.org/2000/svg">
+      <rect x="55" y="48" width="18" height="232" fill="#8B1A1A"/><rect x="307" y="48" width="18" height="232" fill="#8B1A1A"/>
+      <rect x="26" y="58" width="328" height="20" rx="4" fill="#8B1A1A"/>
+      <path d="M16 60 Q190 24 364 60" fill="none" stroke="#8B1A1A" stroke-width="17" stroke-linecap="round"/>
+      <rect x="76" y="106" width="228" height="15" rx="3" fill="#8B1A1A"/>
+      <rect x="63" y="72" width="15" height="28" fill="#6B0000"/><rect x="302" y="72" width="15" height="28" fill="#6B0000"/>
+    </svg>
+    <div class="cline"><div class="cgem"></div></div>
+  </div>
+
+  <div class="hero-inner">
+    <div class="hero-left rl">
+      <div class="ey ey-l">⚙️ Developer · VAS Labs Founder</div>
+      <h1>Architect of<br><em>Digital Worlds</em></h1>
+      <p>I build structures for stories to live in. Whether architecting a DBMS at <strong>VAS Labs</strong> or crafting a Flutter experience with the <strong>For Real</strong> team, my work is driven by a single obsession: <strong>connection</strong>. A Flutter application isn't just a tool — it's a digital narrative where the user is the protagonist.</p>
+      <div class="trow"><span class="tag tl">Flutter</span><span class="tag tl">UI/UX</span><span class="tag tl">DBMS</span><span class="tag tl">VAS Labs</span></div>
+    </div>
+    <div class="hero-right rr">
+      <div class="ey ey-r">✍️ Storyteller · Author</div>
+      <h1>Storyteller<br>at the <em>Soul</em></h1>
+      <p><strong>Storyteller by heart, Developer by trade.</strong> From the neon-lit streets of <strong>Paris</strong> to the quiet pages of <em>Nativity and Immigration</em>, I write stories designed to be rewound and felt. I believe the best experiences are those you can imagine, rewind, and feel from the heart. I don't just develop — I <strong>compose</strong>.</p>
+      <div class="trow"><span class="tag tr">Paris Stories</span><span class="tag tr">Standalones</span><span class="tag tr">Fiction</span></div>
+    </div>
+  </div>
+
+  
+</section>
+
+<!-- ═══ ABOUT ═══ -->
+<section class="about" id="about">
+  <div class="about-in">
+    <div class="about-left rv">
+      <div class="about-avatar"><span>✍️</span></div>
+      <div class="about-badge-row">
+        <span class="ab ab-gold">🏛️ VAS Labs Founder</span>
+        <span class="ab ab-red">⚙️ Developer</span>
+        <span class="ab ab-sakura">✍️ Storyteller</span>
+        <span class="ab ab-blue">📍 Paris, France</span>
+      </div>
+    </div>
+    <div class="about-right rl">
+      <span class="a-stag">✦ About Me</span>
+      <h2>Storyteller by <em>Heart</em>,<br>Developer by <span>Trade</span></h2>
+      <div class="about-bio">
+        <p>I'm <strong>NVR</strong> — a developer and author living in <strong>Paris, France</strong>, where the cobblestones and café lights have a way of finding their way into everything I build and everything I write.</p>
+        <p>By day, I architect digital worlds at <strong>VAS Labs</strong>, where I founded a team obsessed with building things that actually <em>feel</em> like something. Whether that's a Flutter app where the interface breathes like a story, or a DBMS schema so clean it disappears into the experience — my work is built on one conviction: <strong>function without feeling is just code</strong>.</p>
+        <p>By night — and in the quiet hours — I write. My stories live at the intersection of identity, longing, and place. From the neon-lit streets of Paris to questions of where we come from and who we become, I write to capture the <em>moments that stay with you long after the page turns</em>.</p>
+        <p>Part of the <strong>For Real</strong> team at VAS Labs. Part of every city I've passed through. I don't just develop — I <strong>compose</strong>.</p>
+      </div>
+      <div class="about-duality">
+        <div class="ad-card ad-card-l">
+          <div class="ad-title">⚙️ As a Developer</div>
+          <h4>Architect of Digital Worlds</h4>
+          <p>Flutter · UI/UX · DBMS · VAS Labs · For Real team — building scalable, data-driven applications without sacrificing the human experience.</p>
+        </div>
+        <div class="ad-card ad-card-r">
+          <div class="ad-title">✍️ As a Writer</div>
+          <h4>Narrator of Quiet Truths</h4>
+          <p>4 original works across romance, identity, conflict, and memory. Stories you can imagine, rewind, and feel from the heart.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PHILOSOPHY ═══ -->
+<section class="phil">
+  <div class="phil-in rv">
+    <blockquote>"I bridge the gap between what is <em>functional</em> and what is <em>felt</em>."</blockquote>
+    <p>From the technical precision of the <strong>For Real</strong> team to the emotional depth of <strong>Nativity and Immigration</strong>, every project carries the same DNA — the obsessive belief that the best digital and literary experiences share one quality: they make you feel something real.</p>
+    <p><strong>Storyteller by heart. Developer by trade.</strong> Based in Paris. Building everywhere.</p>
+  </div>
+</section>
+
+<!-- ═══ WORKS ═══ -->
+<section class="works" id="works">
+  <div class="works-in">
+    <!-- Literary Works -->
+    <div class="sec-hdr rv">
+      <span class="stag">✦ Literary Works</span>
+      <h2>Original Stories</h2>
+      <div class="divart"><div class="divline"></div><span>🪷</span><span>✍️</span><span>🌸</span><div class="divline"></div></div>
+      <p>"Stories you can imagine, rewind, and feel from the heart."</p>
+    </div>
+    <div class="books-grid rv">
+      <div class="book-widget" onclick="openBook('Strangers, Lovers and the City of Lights','Paris: A Tale of Two Hearts',['Romance','Atmosphere','Destiny'],'🏙️')">
+        <div class="bspine" data-n="01" style="background:linear-gradient(180deg,#8B1A1A,#5a0a0a);"></div>
+        <div class="bcover" style="background:linear-gradient(160deg,#2a0a1a,#8B1A1A);">🏙️<div class="bcover-ov"></div></div>
+        <div class="bbody">
+          <span class="bbadge bb-s">Paris Series</span>
+          <h4>Strangers, Lovers and the City of Lights</h4>
+          <p class="bseries">Paris: A Tale of Two Hearts</p>
+          <div class="bthemes"><span class="bth">Romance</span><span class="bth">Atmosphere</span><span class="bth">Destiny</span></div>
+        </div>
+        <div class="bcta">▶</div>
+      </div>
+      <div class="book-widget" onclick="openBook('Favorite Stranger','Standalone',['Connection','Mystery','Nostalgia'],'🌫️')">
+        <div class="bspine" data-n="02" style="background:linear-gradient(180deg,#1a3a4a,#0d2137);"></div>
+        <div class="bcover" style="background:linear-gradient(160deg,#0d2137,#1B3A5C);">🌫️<div class="bcover-ov"></div></div>
+        <div class="bbody">
+          <span class="bbadge bb-g">Standalone</span>
+          <h4>Favorite Stranger</h4>
+          <p class="bseries">Standalone Work</p>
+          <div class="bthemes"><span class="bth">Connection</span><span class="bth">Mystery</span><span class="bth">Nostalgia</span></div>
+        </div>
+        <div class="bcta">▶</div>
+      </div>
+      <div class="book-widget" onclick="openBook('Nativity and Immigration','Standalone',['Identity','Roots','Beginnings'],'🌍')">
+        <div class="bspine" data-n="03" style="background:linear-gradient(180deg,#1a3a1a,#2d5a2d);"></div>
+        <div class="bcover" style="background:linear-gradient(160deg,#1a3020,#2d5a30);">🌍<div class="bcover-ov"></div></div>
+        <div class="bbody">
+          <span class="bbadge bb-g">Standalone</span>
+          <h4>Nativity and Immigration</h4>
+          <p class="bseries">Standalone Work</p>
+          <div class="bthemes"><span class="bth">Identity</span><span class="bth">Roots</span><span class="bth">Beginnings</span></div>
+        </div>
+        <div class="bcta">▶</div>
+      </div>
+      <div class="book-widget" onclick="openBook('War with Me','Standalone',['Internal Conflict','Resilience','Emotion'],'⚔️')">
+        <div class="bspine" data-n="04" style="background:linear-gradient(180deg,#3a1a1a,#5a2020);"></div>
+        <div class="bcover" style="background:linear-gradient(160deg,#2a1010,#4a2020);">⚔️<div class="bcover-ov"></div></div>
+        <div class="bbody">
+          <span class="bbadge bb-s">Standalone</span>
+          <h4>War with Me</h4>
+          <p class="bseries">Standalone Work</p>
+          <div class="bthemes"><span class="bth">Internal Conflict</span><span class="bth">Resilience</span><span class="bth">Emotion</span></div>
+        </div>
+        <div class="bcta">▶</div>
+      </div>
+    </div>
+
+    <!-- Dev Works -->
+    <div class="sec-hdr rv" style="margin-top:5rem;">
+      <span class="stag">✦ Digital Works</span>
+      <h2>VAS Labs Projects</h2>
+      <div class="divart"><div class="divline"></div><span>⚙️</span><span>📱</span><span>🗃️</span><div class="divline"></div></div>
+    </div>
+    <div class="vas-row rv"><a href="https://vaslabs.io" target="_blank" class="vas-badge"><div class="vl">V</div><div class="vi"><h4>VAS Labs</h4><p>Founder · Developer · Paris, France</p></div></a></div>
+    <div class="tech-row rv" style="margin-top:1.5rem;">
+      <a href="https://forreal" target="_blank" class="tech-card">
+        <div class="tc-top"><span class="tc-ico">📱</span><span class="tc-badge">For Real Team</span><span class="tc-arr">↗</span></div>
+        <h4>For Real App Suite</h4>
+        <div class="tc-focus">Precision · Flow · Function</div>
+        <p>High-performance, cross-platform Flutter experiences where every interaction feels like part of a larger narrative. The user is always the protagonist.</p>
+        <div class="tc-tags"><span class="tc-t">Flutter</span><span class="tc-t">Dart</span><span class="tc-t">UI/UX</span><span class="tc-t">Cross-Platform</span></div>
+      </a>
+      <a href="https://vaslabs.io" target="_blank" class="tech-card">
+        <div class="tc-top"><span class="tc-ico">🗃️</span><span class="tc-badge">Architect</span><span class="tc-arr">↗</span></div>
+        <h4>DBMS Schema Design</h4>
+        <div class="tc-focus">Data Integrity · Fluidity</div>
+        <p>Designing the invisible backbone — schema architecture, data integrity systems, and fluid relational models that allow complex ideas to function without friction.</p>
+        <div class="tc-tags"><span class="tc-t">SQL</span><span class="tc-t">Schema Design</span><span class="tc-t">Data Integrity</span><span class="tc-t">Relational</span></div>
+      </a>
+    </div>
+
+    <!-- ONE tagline at the very bottom of works -->
+    <div class="bottom-tagline rv" style="margin: 5rem auto; width: fit-content; justify-content: center; text-align: center;">
+      <div class="bt-q">"Where the code ends, the story begins — and vice versa."</div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CONTACT ═══ -->
+<section class="contact" id="contact">
+  <div class="contact-in">
+    <div class="contact-left rl">
+      <span class="c-stag">✦ Join Me</span>
+      <h2>Let's Build &amp;<br><em>Work Together</em></h2>
+      <p>Whether you have a product to build, a story to tell, or simply want to explore a collaboration at the intersection of code and creativity — I'd love to hear from you.</p>
+      <div class="c-items">
+        <div class="c-item"><div class="c-ico">📍</div><span>Paris, France</span></div>
+        <div class="c-item"><div class="c-ico">📧</div><span>nvr7776@yahoo.com</span></div>
+      </div>
+      <div class="socials">
+        <a href="https://github.com/pandu7776" target="_blank" class="soc" title="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+        <a href="https://instagram.com/nvr7776" target="_blank" class="soc" title="Instagram">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        </a>
+        <a href="mailto:nvr7776@yahoo.com" class="soc" title="Email">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="rr">
+      <form class="cform" onsubmit="handleSubmit(event)">
+        <div class="frow">
+          <div class="fg"><label>Name</label><input type="text" placeholder="Your name" required></div>
+          <div class="fg"><label>Email</label><input type="email" placeholder="your@email.com" required></div>
+        </div>
+        <div class="fg">
+          <label>I'm interested in</label>
+          <select>
+            <option>Select...</option>
+            <option>📱 App Development (Flutter)</option>
+            <option>🗃️ DBMS / Architecture</option>
+            <option>📖 Literary Collaboration</option>
+            <option>🎨 UI/UX Design</option>
+            <option>✨AI-ML</option>
+            <option>✨ Other</option>
+          </select>
+        </div>
+        <div class="fg"><label>Message</label><textarea placeholder="Tell me about your idea..." required></textarea></div>
+        <button type="submit" class="sbtn">Send Message ✦</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="ft-logo">NVR</div>
+  <div class="ft-sym">🪔 🌸 ✍️ ⚙️ 🪷 🐯 🦚</div>
+  <p>© 2026 NVR · all rights reserved</p>
+</footer>
+
+<!-- BOOK MODAL -->
+<div class="modal-ov" id="bModal" onclick="closeMod(event)">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <div class="m-ico" id="mIco">📖</div>
+      <div><h3 id="mTitle"></h3><p id="mSeries"></p></div>
+      <button class="m-close" onclick="closeBook()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="pdf-area">
+        <div class="pi">📄</div>
+        <p>Your PDF will appear here once uploaded. Replace the comment below with an embed tag pointing to your file.</p>
+        <span>PDF Coming Soon</span>
+        <!-- TO ACTIVATE: <embed src="YOUR-FILE.pdf" type="application/pdf" width="100%" height="400px" style="border-radius:8px;"> -->
+      </div>
+      <div class="m-chips" id="mChips"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════
+   FULL-PAGE MOTION CANVAS
+   India + Japan cultural artwork:
+   - Indian wild animals (ancient art style): Tiger, Elephant, Peacock, Deer
+   - Japanese pet/domestic animals (artistic): Koi fish, Crane, Cat, Fox
+   - Japanese blossoms (sakura petals)
+   - Indian ancient wisdom symbols (lotus, mandala dots, fire sparks)
+   - Japanese wave curves (Hokusai-inspired)
+══════════════════════════════════ */
+const MC = document.getElementById('motionCanvas');
+const mx = MC.getContext('2d');
+const rsz = () => { MC.width = innerWidth; MC.height = innerHeight; };
+rsz(); window.addEventListener('resize', rsz);
+
+// ── Colour palette ──
+const IND_COLS = ['#E2725B','#E8861A','#D4AF37','#8B1A1A','#FF9933']; // Indian warm
+const JAP_COLS = ['#E8A0B4','#7EB8C9','#d990a0','#FFB7C5','#C9A84C']; // Japanese cool
+const ALL_COLS = [...IND_COLS,...JAP_COLS];
+
+// ─────────────────────────────────
+// 1. SAKURA PETALS (Japanese blossoms)
+// ─────────────────────────────────
+class Petal {
+  constructor() { this.reset(); this.y = Math.random()*innerHeight; }
+  reset() {
+    this.x = Math.random()*innerWidth; this.y = -20;
+    this.w = Math.random()*9+4; this.h = this.w*0.55;
+    this.vx = (Math.random()-.5)*0.85; this.vy = Math.random()*1.1+0.4;
+    this.rot = Math.random()*360; this.rs = (Math.random()-.5)*2.5;
+    this.col = JAP_COLS[Math.floor(Math.random()*JAP_COLS.length)];
+    this.a = Math.random()*0.5+0.2;
+    this.sw = Math.random()*0.014; this.so = Math.random()*Math.PI*2;
+  }
+  tick() {
+    this.y += this.vy; this.x += this.vx + Math.sin(Date.now()*this.sw+this.so)*0.5;
+    this.rot += this.rs; if(this.y > innerHeight+20) this.reset();
+  }
+  draw() {
+    mx.save(); mx.globalAlpha=this.a; mx.translate(this.x,this.y);
+    mx.rotate(this.rot*Math.PI/180); mx.fillStyle=this.col;
+    mx.beginPath(); mx.ellipse(0,0,this.w,this.h,0,0,Math.PI*2); mx.fill();
+    mx.restore();
+  }
+}
+
+// ─────────────────────────────────
+// 2. FIREFLIES / WISDOM SPARKS (Indian ancient fire, diya glow)
+// ─────────────────────────────────
+class Spark {
+  constructor() {
+    this.x=Math.random()*innerWidth; this.y=Math.random()*innerHeight;
+    this.r=Math.random()*2.5+0.8;
+    this.vx=(Math.random()-.5)*0.45; this.vy=(Math.random()-.5)*0.45;
+    this.a=Math.random(); this.as=Math.random()*0.014+0.004;
+    this.col=Math.random()>.5?'#D4AF37':Math.random()>.5?'#E8861A':'#E8A0B4';
+  }
+  tick() {
+    this.x+=this.vx; this.y+=this.vy; this.a+=this.as;
+    if(this.a>1||this.a<0) this.as*=-1;
+    if(this.x<0||this.x>innerWidth) this.vx*=-1;
+    if(this.y<0||this.y>innerHeight) this.vy*=-1;
+  }
+  draw() {
+    mx.save(); mx.globalAlpha=this.a*0.65; mx.fillStyle=this.col;
+    mx.shadowBlur=12; mx.shadowColor=this.col;
+    mx.beginPath(); mx.arc(this.x,this.y,this.r,0,Math.PI*2); mx.fill();
+    mx.restore();
+  }
+}
+
+// ─────────────────────────────────
+// 3. JAPANESE WAVE CURVES (Hokusai-inspired drifting arcs)
+// ─────────────────────────────────
+class Wave {
+  constructor() { this.reset(); this.y = Math.random()*innerHeight; this.progress = Math.random()*Math.PI*2; }
+  reset() {
+    this.y = Math.random()*innerHeight;
+    this.w = Math.random()*200+100; this.h = Math.random()*30+15;
+    this.vy = (Math.random()-.5)*0.18;
+    this.speed = Math.random()*0.008+0.003;
+    this.col = JAP_COLS[Math.floor(Math.random()*JAP_COLS.length)];
+    this.a = Math.random()*0.04+0.01;
+    this.progress = 0;
+    this.x = -this.w;
+  }
+  tick() {
+    this.progress += this.speed;
+    this.x = -this.w + (innerWidth+this.w*2)*(this.progress/(Math.PI));
+    this.y += this.vy;
+    if(this.progress > Math.PI || this.y < -50 || this.y > innerHeight+50) this.reset();
+  }
+  draw() {
+    mx.save(); mx.globalAlpha=this.a; mx.strokeStyle=this.col; mx.lineWidth=1.5;
+    mx.beginPath();
+    for(let i=0;i<=this.w;i+=3) {
+      const yOff = Math.sin((i/this.w)*Math.PI*2)*this.h;
+      if(i===0) mx.moveTo(this.x+i, this.y+yOff);
+      else mx.lineTo(this.x+i, this.y+yOff);
+    }
+    mx.stroke(); mx.restore();
+  }
+}
+
+// ─────────────────────────────────
+// 4. INDIAN WILD ANIMALS — ancient art style (drawn with canvas paths)
+// Tiger, Elephant, Peacock silhouettes, drift slowly
+// ─────────────────────────────────
+class ArtAnimal {
+  constructor(type) {
+    this.type = type || this.randType();
+    this.reset();
+    this.y = Math.random()*innerHeight;
+  }
+  randType() {
+    const t=['tiger','elephant','peacock','deer','koi','crane','cat','lotus'];
+    return t[Math.floor(Math.random()*t.length)];
+  }
+  reset() {
+    this.x = Math.random()*innerWidth;
+    this.y = -100;
+    this.scale = Math.random()*0.6+0.3;
+    this.vx = (Math.random()-.5)*0.35;
+    this.vy = Math.random()*0.3+0.1;
+    this.rot = (Math.random()-.5)*0.3;
+    this.rotSpeed = (Math.random()-.5)*0.003;
+    this.a = Math.random()*0.09+0.03; // very subtle — ghost-like
+    this.col = Math.random()>.5 ? IND_COLS[Math.floor(Math.random()*IND_COLS.length)] : JAP_COLS[Math.floor(Math.random()*JAP_COLS.length)];
+    this.type = this.randType();
+  }
+  tick() {
+    this.x += this.vx; this.y += this.vy; this.rot += this.rotSpeed;
+    if(this.y > innerHeight+120) this.reset();
+    if(this.x < -120) this.x = innerWidth+60;
+    if(this.x > innerWidth+120) this.x = -60;
+  }
+  drawTiger(s) {
+    mx.scale(s,s);
+    // Body
+    mx.beginPath(); mx.ellipse(0,0,50,28,0,0,Math.PI*2); mx.fill();
+    // Head
+    mx.beginPath(); mx.ellipse(55,0,22,18,0.2,0,Math.PI*2); mx.fill();
+    // Tail
+    mx.beginPath(); mx.moveTo(-45,0); mx.quadraticCurveTo(-70,-30,-55,-55); mx.lineWidth=6/s; mx.stroke();
+    // Legs
+    [-20,0,15,35].forEach(lx=>{ mx.beginPath(); mx.ellipse(lx,28,5,14,0,0,Math.PI*2); mx.fill(); });
+    // Stripes
+    mx.globalAlpha*=0.4; mx.strokeStyle='rgba(0,0,0,0.4)'; mx.lineWidth=3/s;
+    [-30,-15,5,25].forEach(sx=>{ mx.beginPath(); mx.moveTo(sx,-26); mx.quadraticCurveTo(sx+5,0,sx,-26+52); mx.stroke(); });
+    mx.globalAlpha/=0.4;
+    // Ears
+    mx.beginPath(); mx.moveTo(48,-14); mx.lineTo(56,-28); mx.lineTo(64,-14); mx.closePath(); mx.fill();
+  }
+  drawElephant(s) {
+    mx.scale(s,s);
+    // Body
+    mx.beginPath(); mx.ellipse(0,0,55,38,0,0,Math.PI*2); mx.fill();
+    // Head
+    mx.beginPath(); mx.ellipse(58,5,30,26,0.15,0,Math.PI*2); mx.fill();
+    // Trunk
+    mx.beginPath(); mx.moveTo(80,12); mx.quadraticCurveTo(100,40,88,60); mx.lineWidth=12/s; mx.lineCap='round'; mx.stroke();
+    // Ear
+    mx.beginPath(); mx.ellipse(50,-8,20,28,0.4,0,Math.PI*2); mx.globalAlpha*=0.55; mx.fill(); mx.globalAlpha/=0.55;
+    // Legs
+    [-25,-5,15,35].forEach(lx=>{ mx.beginPath(); mx.ellipse(lx,35,8,18,0,0,Math.PI*2); mx.fill(); });
+    // Tusk
+    mx.beginPath(); mx.moveTo(82,14); mx.quadraticCurveTo(105,22,100,35); mx.lineWidth=4/s; mx.strokeStyle='rgba(255,240,200,0.6)'; mx.stroke();
+  }
+  drawPeacock(s) {
+    mx.scale(s,s);
+    // Body
+    mx.beginPath(); mx.ellipse(0,0,22,15,0,0,Math.PI*2); mx.fill();
+    // Neck
+    mx.beginPath(); mx.moveTo(18,0); mx.quadraticCurveTo(28,-20,22,-35); mx.lineWidth=8/s; mx.lineCap='round'; mx.stroke();
+    // Head
+    mx.beginPath(); mx.arc(22,-35,8,0,Math.PI*2); mx.fill();
+    // Crown
+    for(let i=-2;i<=2;i++){ mx.beginPath(); mx.moveTo(22,-43); mx.lineTo(22+i*6,-55); mx.lineWidth=2/s; mx.stroke(); mx.beginPath(); mx.arc(22+i*6,-55,3,0,Math.PI*2); mx.fill(); }
+    // Fan tail (spread feathers)
+    for(let a=-60;a<=60;a+=15){
+      const rad=a*Math.PI/180;
+      mx.save(); mx.rotate(rad);
+      mx.beginPath(); mx.moveTo(-8,8); mx.quadraticCurveTo(-15,45,-5,70); mx.lineWidth=3/s; mx.stroke();
+      mx.beginPath(); mx.ellipse(-5,72,6,8,rad,0,Math.PI*2); mx.fill();
+      mx.restore();
+    }
+  }
+  drawDeer(s) {
+    mx.scale(s,s);
+    // Body
+    mx.beginPath(); mx.ellipse(0,0,30,18,0,0,Math.PI*2); mx.fill();
+    // Neck+head
+    mx.beginPath(); mx.moveTo(25,-10); mx.quadraticCurveTo(38,-25,32,-38); mx.lineWidth=10/s; mx.lineCap='round'; mx.stroke();
+    mx.beginPath(); mx.ellipse(30,-38,10,8,0.3,0,Math.PI*2); mx.fill();
+    // Antlers
+    mx.lineWidth=3/s;
+    mx.beginPath(); mx.moveTo(28,-45); mx.lineTo(22,-62); mx.lineTo(14,-55); mx.stroke();
+    mx.beginPath(); mx.moveTo(28,-45); mx.lineTo(34,-62); mx.lineTo(42,-55); mx.stroke();
+    // Legs
+    [-15,0,10,25].forEach(lx=>{ mx.beginPath(); mx.ellipse(lx,16,4,14,0,0,Math.PI*2); mx.fill(); });
+  }
+  drawKoi(s) {
+    mx.scale(s,s);
+    // Body
+    mx.beginPath(); mx.ellipse(0,0,40,16,0,0,Math.PI*2); mx.fill();
+    // Tail
+    mx.beginPath(); mx.moveTo(-38,0); mx.lineTo(-58,-20); mx.lineTo(-60,0); mx.lineTo(-58,20); mx.closePath(); mx.fill();
+    // Fins
+    mx.beginPath(); mx.moveTo(-10,-14); mx.quadraticCurveTo(0,-35,10,-14); mx.lineWidth=3/s; mx.stroke();
+    // Scales pattern
+    mx.globalAlpha*=0.3;
+    for(let i=-30;i<=20;i+=12) { mx.beginPath(); mx.arc(i,0,8,Math.PI,0); mx.stroke(); }
+    mx.globalAlpha/=0.3;
+    // Eye
+    mx.beginPath(); mx.arc(34,0,4,0,Math.PI*2); mx.fillStyle='rgba(0,0,0,0.5)'; mx.fill();
+  }
+  drawCrane(s) {
+    mx.scale(s,s);
+    // Body
+    mx.beginPath(); mx.ellipse(0,0,28,14,0,0,Math.PI*2); mx.fill();
+    // Neck
+    mx.beginPath(); mx.moveTo(22,0); mx.quadraticCurveTo(32,-20,28,-38); mx.lineWidth=7/s; mx.stroke();
+    // Head
+    mx.beginPath(); mx.arc(26,-38,7,0,Math.PI*2); mx.fill();
+    // Beak
+    mx.beginPath(); mx.moveTo(31,-40); mx.lineTo(50,-38); mx.lineWidth=3/s; mx.stroke();
+    // Wings open
+    mx.beginPath(); mx.moveTo(-5,-5); mx.quadraticCurveTo(-50,-40,-60,-10); mx.lineWidth=4/s; mx.stroke();
+    mx.beginPath(); mx.moveTo(-5,5); mx.quadraticCurveTo(-50,40,-60,10); mx.lineWidth=4/s; mx.stroke();
+    // Red cap
+    mx.fillStyle='#E2725B';
+    mx.beginPath(); mx.ellipse(24,-44,6,4,0,0,Math.PI*2); mx.fill();
+  }
+  drawCat(s) {
+    mx.scale(s,s);
+    // Body
+    mx.beginPath(); mx.ellipse(0,5,22,20,0,0,Math.PI*2); mx.fill();
+    // Head
+    mx.beginPath(); mx.arc(0,-20,16,0,Math.PI*2); mx.fill();
+    // Ears
+    mx.beginPath(); mx.moveTo(-14,-32); mx.lineTo(-6,-46); mx.lineTo(2,-32); mx.closePath(); mx.fill();
+    mx.beginPath(); mx.moveTo(14,-32); mx.lineTo(6,-46); mx.lineTo(2,-32); mx.closePath(); mx.fill();
+    // Tail
+    mx.beginPath(); mx.moveTo(20,20); mx.quadraticCurveTo(45,0,38,-20); mx.lineWidth=7/s; mx.lineCap='round'; mx.stroke();
+    // Face lines (whiskers)
+    mx.lineWidth=1.5/s; mx.globalAlpha*=0.5;
+    [[-10,-18],[-10,-22],[-10,-26]].forEach(([wx,wy])=>{ mx.beginPath(); mx.moveTo(wx,wy); mx.lineTo(wx-18,wy); mx.stroke(); });
+    [[10,-18],[10,-22],[10,-26]].forEach(([wx,wy])=>{ mx.beginPath(); mx.moveTo(wx,wy); mx.lineTo(wx+18,wy); mx.stroke(); });
+    mx.globalAlpha/=0.5;
+  }
+  drawLotus(s) {
+    mx.scale(s,s);
+    // Petals
+    for(let a=0;a<360;a+=45){
+      mx.save(); mx.rotate(a*Math.PI/180);
+      mx.beginPath(); mx.ellipse(0,-24,10,22,0,0,Math.PI*2); mx.fill();
+      mx.restore();
+    }
+    // Inner
+    mx.beginPath(); mx.arc(0,0,12,0,Math.PI*2); mx.globalAlpha*=0.6; mx.fill(); mx.globalAlpha/=0.6;
+    // Stem
+    mx.beginPath(); mx.moveTo(0,10); mx.lineTo(0,45); mx.lineWidth=4/s; mx.stroke();
+    // Leaf
+    mx.beginPath(); mx.ellipse(-16,38,18,9,-0.5,0,Math.PI*2); mx.globalAlpha*=0.4; mx.fill(); mx.globalAlpha/=0.4;
+  }
+  draw() {
+    mx.save();
+    mx.globalAlpha = this.a;
+    mx.strokeStyle = this.col;
+    mx.fillStyle = this.col;
+    mx.translate(this.x, this.y);
+    mx.rotate(this.rot);
+    mx.lineWidth = 2;
+    switch(this.type) {
+      case 'tiger':    this.drawTiger(this.scale); break;
+      case 'elephant': this.drawElephant(this.scale); break;
+      case 'peacock':  this.drawPeacock(this.scale); break;
+      case 'deer':     this.drawDeer(this.scale); break;
+      case 'koi':      this.drawKoi(this.scale); break;
+      case 'crane':    this.drawCrane(this.scale); break;
+      case 'cat':      this.drawCat(this.scale); break;
+      case 'lotus':    this.drawLotus(this.scale); break;
+    }
+    mx.restore();
+  }
+}
+
+// ─────────────────────────────────
+// BUILD PARTICLE POOL
+// ─────────────────────────────────
+const pool = [];
+// Sakura petals — 50
+for(let i=0;i<50;i++) pool.push(new Petal());
+// Sparks / wisdom dots — 50
+for(let i=0;i<50;i++) pool.push(new Spark());
+// Waves — 18
+for(let i=0;i<18;i++) pool.push(new Wave());
+// Cultural animals — 22 (mix of all types)
+const ANIMAL_TYPES = ['tiger','elephant','peacock','deer','koi','crane','cat','lotus','tiger','elephant','peacock','koi','crane','cat','lotus','deer','tiger','elephant','peacock','koi','crane','cat'];
+for(let i=0;i<22;i++) {
+  const a = new ArtAnimal(ANIMAL_TYPES[i]);
+  a.y = Math.random()*innerHeight; // scatter initially
+  pool.push(a);
+}
+
+// ── ANIMATE ──
+(function loop() {
+  mx.clearRect(0,0,MC.width,MC.height);
+  pool.forEach(p => { p.tick(); p.draw(); });
+  requestAnimationFrame(loop);
+})();
+
+/* ── SCROLL REVEAL ── */
+const ob = new IntersectionObserver(
+  es => es.forEach(e=>{ if(e.isIntersecting){e.target.classList.add('show');ob.unobserve(e.target);}}),
+  {threshold:0.1}
+);
+document.querySelectorAll('.rv,.rl,.rr').forEach(el=>ob.observe(el));
+
+/* ── NAV ── */
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').style.background = scrollY>60?'rgba(3,6,9,0.97)':'rgba(7,12,21,0.7)';
+});
+
+/* ── BOOK MODAL ── */
+function openBook(title,series,themes,ico){
+  document.getElementById('mTitle').textContent=title;
+  document.getElementById('mSeries').textContent=series;
+  document.getElementById('mIco').textContent=ico;
+  document.getElementById('mChips').innerHTML=themes.map(t=>`<span class="mchip">${t}</span>`).join('');
+  document.getElementById('bModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeBook(){document.getElementById('bModal').classList.remove('open');document.body.style.overflow='';}
+function closeMod(e){if(e.target===document.getElementById('bModal'))closeBook();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeBook();});
+
+/* ── FORM ── */
+function handleSubmit(e){
+  e.preventDefault();
+  const b=e.target.querySelector('.sbtn');
+  b.textContent='✓ Message Sent — Talk Soon';
+  b.style.background='linear-gradient(135deg,#4A7C59,#2d6b3f)';
+  b.style.color='#fff';
+  setTimeout(()=>{b.textContent='Send Message ✦';b.style.background='';b.style.color='';e.target.reset();},3000);
+}
+</script>
+</body>
+</html>
